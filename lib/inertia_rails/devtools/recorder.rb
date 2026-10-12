@@ -45,13 +45,14 @@ module InertiaRails
         )
       end
 
-      def render_started(component:, render_source:, shared_keys:)
+      def render_started(component:, render_source:, shared_keys:, camelize: false)
         @collector = Collector.new(
           component: component,
           render_source: render_source,
           share_sources: @share_sources,
           prop_sources: @prop_sources,
-          shared_keys: shared_keys
+          shared_keys: shared_keys,
+          camelize: camelize
         )
       end
 

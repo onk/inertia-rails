@@ -11,12 +11,13 @@ module InertiaRails
       attr_reader :component
       attr_accessor :page
 
-      def initialize(component:, render_source:, share_sources:, prop_sources:, shared_keys:)
+      def initialize(component:, render_source:, share_sources:, prop_sources:, shared_keys:, camelize: false)
         @component = component
         @render_source = render_source
         @share_sources = share_sources
         @prop_sources = prop_sources
         @shared_keys = shared_keys
+        @camelize = camelize
         @rows = {}
         @page = nil
       end
@@ -88,16 +89,30 @@ module InertiaRails
       # declared it, or else to the render call.
       def link_sources(rows)
         shared, rendered = rows.keys.partition { |path| shared?(path) }
+        share_sources = client_keyed(@share_sources)
         shared.each do |path|
-          source = @share_sources[top_key(path)]
+          source = share_sources[top_key(path)]
           rows[path] = rows[path].merge(shareSource: source) if source
         end
 
-        render_sources = @render_source ? SourceLocator.key_sources(@render_source, rendered) : {}
+        render_sources =
+          @render_source ? SourceLocator.key_sources(@render_source, rendered) { |key| client_path(key) } : {}
+        prop_sources = client_keyed(@prop_sources)
         rendered.each do |path|
-          source = @prop_sources[path] || render_sources[path]
+          source = prop_sources[path] || render_sources[path]
           rows[path] = rows[path].merge(renderSource: source) if source
         end
+      end
+
+      # Sources are keyed by the names written in the code, and rows by the names the client was given.
+      def client_keyed(sources)
+        return sources unless @camelize
+
+        sources.each_with_object({}) { |(path, source), keyed| keyed[client_path(path)] ||= source }
+      end
+
+      def client_path(path)
+        @camelize ? CamelCase.path(path) : path
       end
 
       def found?(props, path)

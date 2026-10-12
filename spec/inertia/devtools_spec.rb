@@ -352,6 +352,36 @@ RSpec.describe 'InertiaRails DevTools', type: :request do
         expect(File.readlines(source['file'])[source['line'] - 1]).to include('name:')
       end
 
+      describe 'with camelize_props' do
+        subject(:recorded) do
+          get devtools_camelized_path, headers: { 'X-Inertia' => true }
+          entry
+        end
+
+        it 'lists the props under the names the client was given' do
+          expect(recorded['props'].keys).to include('accountName', 'userProfile', 'userProfile.firstName')
+          expect(recorded['propValues']).to include('userProfile' => { 'firstName' => 'Jane' })
+        end
+
+        it 'links a rendered prop to the line its key is on', if: InertiaRails::Devtools::SourceLocator.prism? do
+          source = recorded['props']['userProfile.firstName']['renderSource']
+
+          expect(File.readlines(source['file'])[source['line'] - 1]).to include('first_name:')
+        end
+
+        it 'links a shared prop to its share call' do
+          expect(recorded['props']['accountName']).to include('shared' => true)
+          expect(recorded['props']['accountName']['shareSource']['file'])
+            .to end_with('inertia_devtools_camelized_controller.rb')
+        end
+
+        it 'links a serialized prop to where the serializer declared it' do
+          serializer = Rails.root.join('app/controllers/inertia_devtools_camelized_controller.rb').to_s
+
+          expect(recorded['props']['profileCard.displayName']['renderSource']).to eq('file' => serializer, 'line' => 9)
+        end
+      end
+
       it 'resolves the route' do
         expect(recorded['route']['action']).to eq 'InertiaDevtoolsTestController#props'
         expect(recorded['route']['actionSource']['file']).to end_with('inertia_devtools_test_controller.rb')

@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   get 'devtools_rescued' => 'inertia_devtools_test#rescued'
   get 'devtools_kinds' => 'inertia_devtools_test#kinds'
   get 'devtools_implicit' => 'inertia_devtools_implicit#show'
+  get 'devtools_camelized' => 'inertia_devtools_camelized#show'
 
   get 'configuration' => 'inertia_config_test#configuration'
   get 'props' => 'inertia_render_test#props'

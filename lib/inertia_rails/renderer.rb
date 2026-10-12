@@ -95,7 +95,8 @@ module InertiaRails
       @recorder.render_started(
         component: @component,
         render_source: Devtools::SourceLocator.render_source(caller_locations(1, 40), @controller),
-        shared_keys: shared_keys
+        shared_keys: shared_keys,
+        camelize: @configuration.camelize_props
       )
     end
 

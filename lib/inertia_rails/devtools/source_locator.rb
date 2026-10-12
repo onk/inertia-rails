@@ -29,9 +29,11 @@ module InertiaRails
           file && { file: file, line: line }
         end
 
-        # Where each key is written inside the call at `source`, or the call's own line.
-        def key_sources(source, keys)
+        # Where each key is written inside the call at `source`, or the call's own line. A block names
+        # the keys as `keys` does, when that differs from how they are written.
+        def key_sources(source, keys, &name)
           lines = key_lines(source)
+          lines = lines.each_with_object({}) { |(key, line), named| named[name.call(key)] ||= line } if name
           keys.index_with { |key| { file: source[:file], line: lines[key] || source[:line] } }
         end
 

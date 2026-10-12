@@ -15,6 +15,7 @@ RSpec.describe InertiaRails::Renderer do
                              deep_merge_shared_data: false,
                              clear_history: false,
                              expose_shared_prop_keys: true,
+                             camelize_props: false,
                              layout: true)
 
       controller = double('controller',

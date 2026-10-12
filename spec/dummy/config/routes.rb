@@ -120,6 +120,12 @@ Rails.application.routes.draw do
   get 'prop_transformer_test' => 'inertia_prop_transformer#just_props'
   get 'prop_transformer_with_meta_test' => 'inertia_prop_transformer#props_and_meta'
   get 'prop_transformer_no_props_test' => 'inertia_prop_transformer#no_props'
+  get 'camelize_props/plain' => 'inertia_camelize_props#plain'
+  get 'camelize_props/merged' => 'inertia_camelize_props#merged'
+  get 'camelize_props/scrolling' => 'inertia_camelize_props#scrolling'
+  get 'camelize_props/deferred' => 'inertia_camelize_props#deferred'
+  get 'camelize_props/flashed' => 'inertia_camelize_props#flashed'
+  get 'camelize_props/meta_tagged' => 'inertia_camelize_props#meta_tagged'
   get 'default_component_test' => 'inertia_rails_mimic#default_component_test'
   get 'default_component_with_props_test' => 'inertia_rails_mimic#default_component_with_props_test'
   get 'default_component_with_duplicated_props_test' =>

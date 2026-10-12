@@ -126,7 +126,8 @@ module InertiaRails
     end
 
     def extract_shared_keys(shared_props)
-      shared_props.keys.map { |key| key.to_s.split('.', 2).first }.uniq
+      keys = shared_props.keys.map { |key| key.to_s.split('.', 2).first }.uniq
+      @configuration.camelize_props ? keys.map { |key| CamelCase.key(key) } : keys
     end
 
     def page
@@ -157,7 +158,8 @@ module InertiaRails
           except_once: parse_header('X-Inertia-Except-Once-Props'),
           scroll_intent: @request.headers['X-Inertia-Infinite-Scroll-Merge-Intent'],
         },
-        recorder: @recorder
+        recorder: @recorder,
+        camelize: @configuration.camelize_props
       )
       resolved_props, metadata = resolver.resolve
 
@@ -173,6 +175,7 @@ module InertiaRails
       page[:clearHistory] = @clear_history if @clear_history
 
       flash_data = @controller.__send__(:inertia_collect_flash_data)
+      flash_data = CamelCase.deep(flash_data) if @configuration.camelize_props
       page[:flash] = flash_data if flash_data.present?
 
       page[:sharedProps] = @shared_keys if @shared_keys&.any?

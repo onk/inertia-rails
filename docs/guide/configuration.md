@@ -48,15 +48,9 @@ Use `component_path_resolver` to customize component path resolution when [`defa
 
 **Default**: `->(props:) { props }`
 
-Use `prop_transformer` to apply a transformation to your props before they're sent to the view. One use-case this enables is to work with `snake_case` props within Rails while working with `camelCase` in your view:
+Use `prop_transformer` to apply a transformation to your props before they're sent to the view.
 
-```ruby
-  inertia_config(
-    prop_transformer: lambda do |props:|
-      props.deep_transform_keys { |key| key.to_s.camelize(:lower) }
-    end
-  )
-```
+To name props in `camelCase` on the client, use [`camelize_props`](#camelize_props) instead. `prop_transformer` only sees the props hash, so a key it renames no longer matches the name the page metadata and partial reloads refer to the prop by, and merge props, infinite scroll, deferred props and once props stop finding it.
 
 > [!NOTE]
 > This controls the props provided by Inertia Rails but does not concern itself with props coming _into_ Rails. You may want to add a global `before_action` to `ApplicationController`:
@@ -70,6 +64,41 @@ def underscore_params
   params.deep_transform_keys! { |key| key.to_s.underscore }
 end
 ```
+
+### `camelize_props`
+
+**Default**: `false`
+**ENV**: `INERTIA_CAMELIZE_PROPS`
+
+@available_since rails=master
+
+Write props in `snake_case` in Rails, and receive them in `camelCase` on the client:
+
+```ruby
+InertiaRails.configure do |config|
+  config.camelize_props = true
+end
+```
+
+```ruby
+render inertia: 'UserProfiles/Index', props: {
+  user_profiles: InertiaRails.scroll(pagy) { ... },
+}
+```
+
+```jsx
+<InfiniteScroll data="userProfiles">
+```
+
+Prop names are converted at every level, the keys inside what a block returns included, and so are the keys of the flash. The page metadata (`mergeProps`, `scrollProps`, `deferredProps`, `onceProps` and the rest) names props the same way, and a partial reload is matched against those names only: the client asks for `userProfiles`, and `user_profiles` matches nothing.
+
+Leading underscores are kept, so `_destroy` stays `_destroy` rather than becoming `Destroy`, which would not convert back to the name it came from.
+
+Two names are left as they are, because they do not name a prop: the group of a deferred prop, and a once key given with `key:`.
+
+Only hashes and arrays are walked. An object that becomes JSON later, such as an Active Record model, keeps the keys of its `as_json`; serialize it to a hash first.
+
+Remove any other case conversion, such as a key-renaming `prop_transformer` or a client-side one.
 
 ### `cache_store`
 

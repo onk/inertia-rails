@@ -9,10 +9,11 @@ module InertiaRails
       value.respond_to?(:to_inertia) && !value.is_a?(ActiveSupport::OrderedOptions)
     end
 
-    def initialize(props, evaluator:, visit: {}, recorder: nil)
+    def initialize(props, evaluator:, visit: {}, recorder: nil, camelize: false)
       @props = props
       @evaluator = evaluator
       @recorder = recorder
+      @camelize = camelize
       @partial_component = visit[:component] || false
       @partial_keys = visit[:only] || []
       @partial_except_keys = visit[:except] || []
@@ -87,6 +88,7 @@ module InertiaRails
 
     def deep_transform_props(props, prefix = '', parent_was_resolved: false)
       props.each_with_object({}) do |(key, prop), transformed_props|
+        key = client_key(key)
         path = prefix.empty? ? key.to_s : "#{prefix}.#{key}"
 
         if self.class.serializer?(prop)
@@ -108,7 +110,7 @@ module InertiaRails
           next if !parent_was_resolved && excluded_by_partial_request?(path)
 
           record_prop(prop, path)
-          transformed_props[key] = transform_array(prop, path, parent_was_resolved: parent_was_resolved)
+          transformed_props[key] = client_keys(transform_array(prop, path, parent_was_resolved: parent_was_resolved))
           next
         end
 
@@ -142,12 +144,12 @@ module InertiaRails
               transformed_props[key] = nested unless nested.empty?
               next
             elsif value.is_a?(Array)
-              transformed_props[key] = transform_array(value, path, parent_was_resolved: true)
+              transformed_props[key] = client_keys(transform_array(value, path, parent_was_resolved: true))
               next
             end
           end
 
-          transformed_props[key] = rescue_enabled ? value.as_json : value
+          transformed_props[key] = client_keys(rescue_enabled ? value.as_json : value)
         rescue StandardError => e
           raise unless rescue_enabled
 
@@ -251,11 +253,11 @@ module InertiaRails
       elsif prop.prepends_at_root?
         @_prepend << path
       else
-        prop.appends_at_paths.each { |p| @_merge << "#{path}.#{p}" }
-        prop.prepends_at_paths.each { |p| @_prepend << "#{path}.#{p}" }
+        prop.appends_at_paths.each { |p| @_merge << "#{path}.#{client_path(p)}" }
+        prop.prepends_at_paths.each { |p| @_prepend << "#{path}.#{client_path(p)}" }
       end
 
-      prop.match_on&.each { |ms| @_match_on << "#{path}.#{ms}" }
+      prop.match_on&.each { |ms| @_match_on << "#{path}.#{client_path(ms)}" }
     end
 
     def collect_once_metadata(prop, path)
@@ -319,6 +321,23 @@ module InertiaRails
 
     def excluded_by_except_partial_keys?(path)
       partial_except_keys.present? && partial_except_keys.any? { |key| key == path || path.start_with?("#{key}.") }
+    end
+
+    # With `camelize_props`, a prop is known by its camelCase name from the moment it is read:
+    # every path is built from that name, so the metadata names props the way `props` does, and a
+    # partial reload is matched against the names the client was given rather than the declared ones.
+    def client_key(key)
+      @camelize ? CamelCase.key(key) : key
+    end
+
+    # For the paths a prop's options name inside its value, such as `match_on:`.
+    def client_path(path)
+      @camelize ? CamelCase.path(path) : path
+    end
+
+    # A value that was not walked as props, such as the hash a deferred prop returned.
+    def client_keys(value)
+      @camelize ? CamelCase.deep(value) : value
     end
   end
 end

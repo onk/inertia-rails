@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+* Add `camelize_props` to name props in `camelCase` on the client, in the props, the flash and the page metadata, and to match partial reloads against those names (@onk)
+
 ## [3.23.0] - 2026-10-16
 
 * Accept a block in `inertia_ssr_head` for fallback head elements, rendered when the response isn't server-side rendered, like inertia-laravel's `<x-inertia::head>` (@skryukov)

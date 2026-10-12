@@ -18,6 +18,9 @@ module InertiaRails
       # A function that transforms the props before they are sent to the client.
       prop_transformer: ->(props:) { props },
 
+      # Whether to name props in camelCase on the client, wherever the protocol names them.
+      camelize_props: false,
+
       # DEPRECATED: Let Rails decide which layout should be used based on the
       # controller configuration.
       layout: true,

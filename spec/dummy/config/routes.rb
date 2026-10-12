@@ -126,6 +126,9 @@ Rails.application.routes.draw do
   get 'camelize_props/deferred' => 'inertia_camelize_props#deferred'
   get 'camelize_props/flashed' => 'inertia_camelize_props#flashed'
   get 'camelize_props/meta_tagged' => 'inertia_camelize_props#meta_tagged'
+  post 'camelize_params' => 'inertia_camelize_params#create'
+  match 'camelize_params/echo(/:profile_id)' => 'inertia_camelize_params#echo', via: %i[get post]
+  post 'plain_params/echo' => 'inertia_plain_params#echo'
   get 'default_component_test' => 'inertia_rails_mimic#default_component_test'
   get 'default_component_with_props_test' => 'inertia_rails_mimic#default_component_with_props_test'
   get 'default_component_with_duplicated_props_test' =>

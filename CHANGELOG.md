@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-* Add `camelize_props` to name props in `camelCase` on the client, in the props, the flash and the page metadata, and to match partial reloads against those names (@onk)
+* Add `camelize_props` to name props in `camelCase` on the client, in the props, the flash and the page metadata, and to match partial reloads against those names. The body of an Inertia request is renamed back to `snake_case` before the action runs (@onk)
 
 ## [3.23.0] - 2026-10-16
 

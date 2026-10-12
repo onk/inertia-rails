@@ -106,6 +106,16 @@ module InertiaRails
 
     private
 
+    # Renamed here rather than in a callback, because `ParamsWrapper` wraps a JSON body in its own
+    # `process_action`, ahead of every callback, unless the body already carries the wrapper key.
+    # A body of `{ "userProfile" => ... }` sent to a controller wrapping under `user_profile` would
+    # get an empty `user_profile` added first, and renaming `userProfile` afterwards would collide
+    # with it.
+    def process_action(*)
+      CamelCaseParameters.rename!(request) if request.inertia? && inertia_configuration.camelize_props
+      super
+    end
+
     def precognition!(model_or_errors)
       InertiaRails.precognition!(model_or_errors)
     end

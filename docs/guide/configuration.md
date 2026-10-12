@@ -52,19 +52,6 @@ Use `prop_transformer` to apply a transformation to your props before they're se
 
 To name props in `camelCase` on the client, use [`camelize_props`](#camelize_props) instead. `prop_transformer` only sees the props hash, so a key it renames no longer matches the name the page metadata and partial reloads refer to the prop by, and merge props, infinite scroll, deferred props and once props stop finding it.
 
-> [!NOTE]
-> This controls the props provided by Inertia Rails but does not concern itself with props coming _into_ Rails. You may want to add a global `before_action` to `ApplicationController`:
-
-```ruby
-before_action :underscore_params
-
-# ...
-
-def underscore_params
-  params.deep_transform_keys! { |key| key.to_s.underscore }
-end
-```
-
 ### `camelize_props`
 
 **Default**: `false`
@@ -98,7 +85,11 @@ Two names are left as they are, because they do not name a prop: the group of a 
 
 Only hashes and arrays are walked. An object that becomes JSON later, such as an Active Record model, keeps the keys of its `as_json`; serialize it to a hash first.
 
-Remove any other case conversion, such as a key-renaming `prop_transformer` or a client-side one.
+The body of an Inertia request is renamed back before the action runs, so a form the client submits as `{ userProfile: { firstName: 'Jane' } }` is read with `params.expect(user_profile: [:first_name])`. A name in the body that is not camelCase is dropped and logged as a warning, so the action is reached under one name only; `params.expect` answers it as it does a parameter the client never sent. The query string and the path parameters are left as they are: the client writes the query string into the address bar, and the same URL comes back from a bookmark without `X-Inertia`, so its names have to work without renaming.
+
+A digit right after an underscore does not survive the round trip: `phone_number_2` goes out as `phoneNumber2` and comes back as `phone_number2`, because case cannot mark a word boundary in front of a digit. Name attributes without an underscore in front of a digit.
+
+Remove any other case conversion, such as a key-renaming `prop_transformer`, a `before_action` that underscores `params`, or a client-side one.
 
 ### `cache_store`
 
